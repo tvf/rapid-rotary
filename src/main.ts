@@ -47,6 +47,25 @@ function draw_reachable_zone(
   );
 }
 
+function find_shortest_path(
+  start: { x: number; y: number },
+  point: { x: number; y: number },
+  angular_velocity: number,
+): number {
+  // TODO might need a more complicated return type to fully describe the path
+
+  // cases!
+  //
+  // there are at most 4 arcs making up the boundary of the
+  // tightest ball about start that contains point
+  //
+  // figure out for each one whether the point could lie on it
+  // + if so, what the time would be
+  // return the shortest time
+
+  return 0;
+}
+
 function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
   ctx.resetTransform();
   ctx.clearRect(0, 0, 480, 480);
