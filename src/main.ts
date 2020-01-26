@@ -1,41 +1,6 @@
-import { vec2 } from 'gl-matrix';
+// import { vec2 } from 'gl-matrix';
 
 main();
-
-function paint_c_space(ctx: CanvasRenderingContext2D): void {
-  for (let i = 0; i < 360; ++i) {
-    for (let j = 0; j < 360; ++j) {
-      const alpha = (Math.PI * i) / 180;
-      const alpha_prime = (Math.PI * j) / 180;
-
-      const elbow = [Math.cos(alpha) - 0.5, Math.sin(alpha)];
-      const elbow_prime = [Math.cos(alpha_prime) + 0.5, Math.sin(alpha_prime)];
-
-      if (vec2.distance(elbow, elbow_prime) > 1.9) {
-        ctx.fillStyle = 'rgb(255, 0, 0)';
-        ctx.fillRect(i, j, 1, 1);
-      }
-    }
-  }
-}
-
-function draw_robot_arm(
-  ctx: CanvasRenderingContext2D,
-  origin: vec2,
-  angle: number,
-) {
-  let transform = ctx.getTransform();
-
-  ctx.translate(origin[0], origin[1]);
-  ctx.rotate(angle);
-
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(1, 0);
-  ctx.stroke();
-
-  ctx.setTransform(transform);
-}
 
 interface XYCTable {
   x: number;
@@ -80,8 +45,6 @@ function draw_reachable_zone(
     theta_cw,
     false,
   );
-
-  ctx.fill();
 }
 
 function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
@@ -91,18 +54,21 @@ function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
   ctx.translate(240, 240);
   ctx.scale(200, -200);
 
+  let t = 1;
+  let toggle = true;
+  while (t > 0) {
+    ctx.fillStyle = `rgb(${toggle ? 255 : 0}, 0, 0)`;
+    draw_reachable_zone(ctx, { x: 0.3, y: 0.3 }, t, Math.PI);
+    ctx.fill();
+    t -= 0.05;
+    toggle = !toggle;
+  }
+
   ctx.beginPath();
   ctx.arc(0, 0, 1, 0, 2 * Math.PI, true);
-  ctx.fillStyle = 'rgb(127, 127, 127)';
+  ctx.strokeStyle = 'rgb(255, 255, 255)';
   ctx.lineWidth = 0.01;
   ctx.stroke();
-
-  let t = 0.5;
-  while (t > 0) {
-    ctx.fillStyle = `rgba(${(1 - t) * 255}, 0, 0, 0.1)`;
-    draw_reachable_zone(ctx, { x: 0.3, y: 0.3 }, t, Math.PI);
-    t -= 0.05;
-  }
 
   // ctx.lineWidth = draw_radius;
   // draw_robot_arm(ctx, vec2.fromValues(-0.5, 0), table.alpha);
@@ -125,6 +91,7 @@ function main() {
 
   simulation_canvas.addEventListener('mousemove', e => {
     const rect = simulation_canvas.getBoundingClientRect();
+    // const mousepoint =
     // drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top);
     // x = e.clientX - rect.left;
     // y = e.clientY - rect.top;
