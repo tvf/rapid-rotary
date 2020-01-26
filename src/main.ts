@@ -37,54 +37,96 @@ function draw_robot_arm(
   ctx.setTransform(transform);
 }
 
-function paint_robot(ctx: CanvasRenderingContext2D, robot_state) {
+interface XYCTable {
+  x: number;
+  y: number;
+  theta: number;
+}
+
+function draw_reachable_zone(
+  ctx: CanvasRenderingContext2D,
+  point: { x: number; y: number },
+  time: number,
+  angular_velocity: number,
+) {
+  const point_r = Math.sqrt(point.x * point.x + point.y * point.y);
+  const point_theta = Math.atan2(point.y, point.x);
+
+  ctx.beginPath();
+
+  const theta_ccw = point_theta + angular_velocity * time;
+  const theta_cw = point_theta - angular_velocity * time;
+
+  ctx.arc(0, 0, point_r + time, theta_cw, theta_ccw, false);
+
+  ctx.arc(
+    point_r * Math.cos(theta_ccw),
+    point_r * Math.sin(theta_ccw),
+    time,
+    theta_ccw,
+    theta_ccw + Math.PI,
+    false,
+  );
+
+  if (point_r - time > 0) {
+    ctx.arc(0, 0, point_r - time, theta_ccw, theta_cw, true);
+  }
+
+  ctx.arc(
+    point_r * Math.cos(theta_cw),
+    point_r * Math.sin(theta_cw),
+    time,
+    theta_cw - Math.PI,
+    theta_cw,
+    false,
+  );
+
+  ctx.fill();
+}
+
+function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
   ctx.resetTransform();
-  ctx.clearRect(0, 0, 480, 360);
+  ctx.clearRect(0, 0, 480, 480);
 
-  ctx.translate(240, 180);
-  ctx.scale(-100, 100);
-  ctx.rotate(Math.PI / 2);
-
-  const draw_radius = 0.05;
+  ctx.translate(240, 240);
+  ctx.scale(200, -200);
 
   ctx.beginPath();
-  ctx.arc(-0.5, 0, draw_radius, 0, 2 * Math.PI, true);
-  ctx.fill();
+  ctx.arc(0, 0, 1, 0, 2 * Math.PI, true);
+  ctx.fillStyle = 'rgb(127, 127, 127)';
+  ctx.lineWidth = 0.01;
+  ctx.stroke();
 
-  ctx.beginPath();
-  ctx.arc(0.5, 0, draw_radius, 0, 2 * Math.PI, true);
-  ctx.fill();
+  let t = 0.5;
+  while (t > 0) {
+    ctx.fillStyle = `rgba(${(1 - t) * 255}, 0, 0, 0.1)`;
+    draw_reachable_zone(ctx, { x: 0.3, y: 0.3 }, t, Math.PI);
+    t -= 0.05;
+  }
 
-  ctx.lineWidth = draw_radius;
-
-  draw_robot_arm(ctx, vec2.fromValues(-0.5, 0), robot_state.alpha);
-  draw_robot_arm(ctx, vec2.fromValues(0.5, 0), robot_state.alpha_prime);
+  // ctx.lineWidth = draw_radius;
+  // draw_robot_arm(ctx, vec2.fromValues(-0.5, 0), table.alpha);
+  // draw_robot_arm(ctx, vec2.fromValues(0.5, 0), table.alpha_prime);
 }
 
 function main() {
-  const robot_state = {
-    alpha: Math.PI / 2,
-    alpha_prime: Math.PI / 2,
+  const table_state = {
+    theta: 0,
+    x: 20,
+    y: 10,
   };
-
-  const c_space_canvas: HTMLCanvasElement = document.getElementById(
-    'c-space',
-  ) as HTMLCanvasElement;
-  const c_space_ctx = c_space_canvas.getContext('2d');
-
-  paint_c_space(c_space_ctx);
 
   const simulation_canvas: HTMLCanvasElement = document.getElementById(
     'simulation',
   ) as HTMLCanvasElement;
   const simulation_ctx = simulation_canvas.getContext('2d');
 
-  paint_robot(simulation_ctx, robot_state);
+  paint_table(simulation_ctx, table_state);
 
-  c_space_canvas.onclick = function(event: MouseEvent) {
-    robot_state.alpha = (Math.PI * event.offsetX) / 180;
-    robot_state.alpha_prime = (Math.PI * event.offsetY) / 180;
-
-    paint_robot(simulation_ctx, robot_state);
-  };
+  simulation_canvas.addEventListener('mousemove', e => {
+    const rect = simulation_canvas.getBoundingClientRect();
+    // drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top);
+    // x = e.clientX - rect.left;
+    // y = e.clientY - rect.top;
+  });
 }
