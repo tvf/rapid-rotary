@@ -76,7 +76,7 @@ function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
   let t = 1;
   let toggle = true;
   while (t > 0) {
-    ctx.fillStyle = `rgb(${toggle ? 255 : 0}, 0, 0)`;
+    ctx.fillStyle = `rgb(${toggle ? 255 : 0}, 0, ${toggle ? 0 : 255})`;
     draw_reachable_zone(ctx, { x: 0.3, y: 0.3 }, t, Math.PI);
     ctx.fill();
     t -= 0.05;
@@ -88,10 +88,6 @@ function paint_table(ctx: CanvasRenderingContext2D, table: XYCTable) {
   ctx.strokeStyle = 'rgb(255, 255, 255)';
   ctx.lineWidth = 0.01;
   ctx.stroke();
-
-  // ctx.lineWidth = draw_radius;
-  // draw_robot_arm(ctx, vec2.fromValues(-0.5, 0), table.alpha);
-  // draw_robot_arm(ctx, vec2.fromValues(0.5, 0), table.alpha_prime);
 }
 
 function main() {
